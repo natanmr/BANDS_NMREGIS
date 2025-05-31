@@ -1047,7 +1047,7 @@ def menu() -> None:
         
         figure_filename = "bands.png"
         if BANDS_data.ISPIN == 2:
-            figure_filename = "bands_spin_polarized.png"
+            figure_filename = "bands.png"
 
         fig, ax = plt.subplots()
         ax = plot_band_axis(ax=ax, bands_obj=BANDS_data, k_labels=k_labels, shift_vbm=shift_vbm)
@@ -1056,7 +1056,7 @@ def menu() -> None:
         if write_files:
             write_bands_files(path=path_calc, bands_obj=BANDS_data, shift_vbm=shift_vbm)
             if BANDS_data.ISPIN == 2:
-                print(f"Bands data written to {path_calc}bands.dat (combined spin channels).")
+                print(f"Bands data written to {path_calc}bands.dat")
             else:
                 print(f"Bands data written to {path_calc}bands.dat")
 
