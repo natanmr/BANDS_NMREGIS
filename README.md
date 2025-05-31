@@ -14,15 +14,27 @@
 
 ## 📦 Installation
 
-You can install the package locally using:
+You can install the package using **Git**:
+
+### Clone and install locally:
 
 ```bash
+git clone https://github.com/yourusername/bands_NMREGIS.git
+cd bands_NMREGIS
 pip install .
+```
+
+### Or install directly with pip from GitHub:
+
+```bash
+pip install git+https://github.com/yourusername/bands_NMREGIS.git
 ```
 
 For development mode (editable install):
 
 ```bash
+git clone https://github.com/yourusername/bands_NMREGIS.git
+cd bands_NMREGIS
 pip install -e .
 ```
 
