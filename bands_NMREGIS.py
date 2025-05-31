@@ -1023,9 +1023,9 @@ def menu() -> None:
     print("#########################")
     
     print("Which analysis do you wanna to do?")
-    print("1. BANDS (Detects ISPIN automatically from EIGENVAL) ")
-    print("2. Bands with Hybrid Functional (Not fully implemented for ISPIN=2 yet) ")
-    print("3. BANDS with SOC (Not fully implemented for ISPIN=2 yet) ")
+    print("1. BANDS")
+    print("2. Bands with Hybrid Functional  ")
+    print("3. BANDS with SOC")
 
     type_analysis = input("Enter your answer (Defaults to 1): ") or "1" # Renamed from type_bands
 
