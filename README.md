@@ -19,7 +19,7 @@ You can install the package using **Git**:
 ### Clone and install locally:
 
 ```bash
-git clone https://github.com/yourusername/bands_NMREGIS.git
+git clone https://github.com/natanmr/bands_NMREGIS.git
 cd bands_NMREGIS
 pip install .
 ```
@@ -27,13 +27,13 @@ pip install .
 ### Or install directly with pip from GitHub:
 
 ```bash
-pip install git+https://github.com/yourusername/bands_NMREGIS.git
+pip install git+https://github.com/natanmr/bands_NMREGIS.git
 ```
 
 For development mode (editable install):
 
 ```bash
-git clone https://github.com/yourusername/bands_NMREGIS.git
+git clone https://github.com/natanmr/bands_NMREGIS.git
 cd bands_NMREGIS
 pip install -e .
 ```
@@ -54,16 +54,11 @@ python bands_NMREGIS.py
 bands_NMREGIS
 ```
 
----
-
-## 📄 Example
-
+### As a library:
 ```python
 import bands_NMREGIS
-
-# Example function call if exposed via API
-bands_NMREGIS.run_analysis("path/to/data/file.dat")
 ```
+
 
 ---
 
