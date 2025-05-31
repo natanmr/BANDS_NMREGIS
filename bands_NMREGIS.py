@@ -107,7 +107,7 @@ def write_bands_files(path, bands_obj, shift_vbm=True, **kwargs) -> None:
         # Write combined data to a single file
         with open(f"{path}bands.dat", "w") as f:
             # Write header
-            f.write(f"{'KPOINT':<10} {'Energy_up':<15} {'Energy_down':<15}\n")
+            f.write(f"#{'KPOINT':<10} {'Energy_up':<15} {'Energy_down':<15}\n")
             
             prev_k = df_combined["KPOINT"].iloc[0]
             for i, row in df_combined.iterrows():
@@ -924,15 +924,15 @@ def plot_band_axis(ax, bands_obj, shift_vbm = True, xmin = 0, xmax = 1, ymin = -
     if bands_obj.ISPIN == 1:
         data, cols = bands_obj.bands()
         df = pd.DataFrame(data=data, columns=cols)
-        
+
         kold = 0
         for k_idx, kp in enumerate(df["KPOINT"]):
             if k_idx > 0 and df["KPOINT"][k_idx] < df["KPOINT"][k_idx-1]: # Check for segment break
                 special_points_num.append(df["KPOINT"][k_idx-1])
-                ax.plot(df["KPOINT"][kold:k_idx], df["Energy"][kold:k_idx]-vbm_to_shift, color="black", linestyle="-", label="Bands")
+                ax.plot(df["KPOINT"][kold:k_idx], df["Energy"][kold:k_idx]-vbm_to_shift, color="black", linestyle="-")
                 kold = k_idx
         # Plot the last segment
-        ax.plot(df["KPOINT"][kold:], df["Energy"][kold:]-vbm_to_shift, color="black", linestyle="-", label="Bands")
+        ax.plot(df["KPOINT"][kold:], df["Energy"][kold:]-vbm_to_shift, color="black", linestyle="-")
         # Add the last k-point if it's not already there and the DataFrame is not empty
         if not df.empty and df["KPOINT"].iloc[-1] not in special_points_num:
             special_points_num.append(df["KPOINT"].iloc[-1])
@@ -988,7 +988,7 @@ def plot_band_axis(ax, bands_obj, shift_vbm = True, xmin = 0, xmax = 1, ymin = -
         ax.axvline(x=sp, color="black", linewidth=1.0, linestyle="dashed")
 
     # Line on fermi level
-    ax.axhline(y=0, color="black", linewidth=1.0, linestyle="dotted", label=r"$E_{Fermi}$")
+    ax.axhline(y=0, color="black", linewidth=1.0, linestyle="dotted", label=r"VBM")
 
     # set xticks
     if k_labels is None:
