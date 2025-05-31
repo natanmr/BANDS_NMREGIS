@@ -53,6 +53,21 @@ def read_poscar(path):
     # Open and read the POSCAR file
     return open_file(f"{path}/POSCAR").readlines()
 
+
+def write_bands_files(bands_obj) -> None:
+    """
+    Write bands.dat and other informations in gap.txt file
+
+    Arguments:
+        bands_obj (object): bands object:
+
+    Returns: 
+        None        
+    """
+
+    
+
+
 class ReadEIGENVAL:
     '''
     This class recives the file argument
@@ -686,8 +701,6 @@ def menu() -> None:
 
     if type_bands == "1":
         BANDS_data = Bands(path=path_calc, file = "EIGENVAL", exclude=0, normalize=normalize)
-        print(BANDS_data)
-
         fig, ax, = plt.subplots()
         ax = plot_band_axis(ax=ax, bands_obj=BANDS_data)
         plt.savefig("bands.png", dpi = 100)
@@ -698,6 +711,14 @@ def menu() -> None:
     elif type_bands == "3":
         print("Comming soon...")
         exit()
+
+    write_files = input("Do you want to write the bands files (y/n. Defaults to y)? ") or "y"
+    if write_files == "y":
+        print("Comming soon...")
+        exit()
+        write_bands_files(bands_obj = BANDS_data)
+    else:
+        pass
 
 if __name__ == '__main__':
     menu()
