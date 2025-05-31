@@ -639,7 +639,7 @@ class Bands:
 ################
 ## Plot utils ##
 ################
-def plot_band_axis(ax, bands_obj ,shift_fermi = True, xmin = 0, xmax = 1, ymin = -4, ymax = 4):
+def plot_band_axis(ax, bands_obj, shift_fermi = True, xmin = 0, xmax = 1, ymin = -4, ymax = 4, k_labels = None):
 
     data = bands_obj.bands()
     data = pd.DataFrame(data = data[0], columns=data[1])
@@ -670,8 +670,20 @@ def plot_band_axis(ax, bands_obj ,shift_fermi = True, xmin = 0, xmax = 1, ymin =
     special_points_num.append(data["KPOINT"][k])
     special_points_num.insert(0, data["KPOINT"][0])
 
-    ax.set_xticks(ticks = special_points_num)
-
+    print(k_labels)
+    if k_labels is None:
+        ax.set_xticks(ticks=special_points_num)
+        ax.set_xticklabels([])
+    else:
+        k_labels_list = [rf"${k.strip()}$" for k in k_labels.split(",")]
+        if len(k_labels_list) == len(special_points_num):
+            ax.set_xticks(ticks=special_points_num)
+            ax.set_xticklabels(k_labels_list)
+        else:
+            print("Wrong number of k-labels... Using ticks with no labels.")
+            ax.set_xticks(ticks=special_points_num)
+            ax.set_xticklabels([])
+            
     # axis limits
     ax.set_xlim(xmin, xmax); ax.set_ylim(ymin, ymax)
 
@@ -699,10 +711,12 @@ def menu() -> None:
 
     normalize = input("Do you want to normalize the k-path (Defaults to True)? ") or True
 
+    k_labels = input("Write the k-labels of special points in BZ (Ex.: \Gamma, K, M, \Gamma) : ") or None
+
     if type_bands == "1":
         BANDS_data = Bands(path=path_calc, file = "EIGENVAL", exclude=0, normalize=normalize)
         fig, ax, = plt.subplots()
-        ax = plot_band_axis(ax=ax, bands_obj=BANDS_data)
+        ax = plot_band_axis(ax=ax, bands_obj=BANDS_data, k_labels=k_labels)
         plt.savefig("bands.png", dpi = 100)
 
     elif type_bands == "2":
@@ -717,9 +731,7 @@ def menu() -> None:
         print("Comming soon...")
         exit()
         write_bands_files(bands_obj = BANDS_data)
-    else:
-        pass
-
+    
 if __name__ == '__main__':
     menu()
 
