@@ -914,83 +914,112 @@ class Bands:
 ################
 ## Plot utils ##
 ################
-def plot_band_axis(ax, bands_obj, shift_vbm = True, xmin = 0, xmax = 1, ymin = -4, ymax = 4, k_labels = None):
+def plot_segments(df, color, linestyle, label, special_points_num, vbm_to_shift, ax):
+    """
+    Plot band segments separately to avoid connecting across k-path boundaries.
 
-    # Get VBM (for shifting if needed)
+    Args:
+        df (pd.DataFrame): DataFrame with columns "KPOINT" and "Energy".
+        color (str): Line color.
+        linestyle (str): Line style.
+        label (str): Label for legend.
+        special_points_num (list): List to store special k-points.
+        vbm_to_shift (float): Energy value to shift (usually VBM).
+        ax (matplotlib.axes.Axes): Axes object to plot on.
+    """
+    df = df.copy()
+    df["Energy"] -= vbm_to_shift
+    first_label = True
+    kold = 0
+
+    for k_idx in range(1, len(df)):
+        if df["KPOINT"][k_idx] == df["KPOINT"][k_idx - 1]:
+            special_points_num.append(df["KPOINT"][k_idx])
+        if df["KPOINT"][k_idx] < df["KPOINT"][k_idx - 1]:
+            ax.plot(df["KPOINT"][kold:k_idx], df["Energy"][kold:k_idx],
+                    color=color, linestyle=linestyle, label=label if first_label else None)
+            
+            first_label = False
+            kold = k_idx
+
+    if not df.empty:
+        ax.plot(df["KPOINT"][kold:], df["Energy"][kold:],
+                color=color, linestyle=linestyle, label=label if first_label else None)
+        if df["KPOINT"].iloc[-1] not in special_points_num:
+            special_points_num.append(df["KPOINT"].iloc[-1])
+    
+    return special_points_num
+
+
+def plot_band_axis(ax, bands_obj, shift_vbm=True, xmin=0, xmax=1, ymin=-4, ymax=4, k_labels=None):
+    """
+    Plot band structure on a given matplotlib axis with optional spin and VBM alignment.
+
+    Args:
+        ax (matplotlib.axes.Axes): Axis to plot on.
+        bands_obj: Object with .bands() and .ISPIN attributes.
+        shift_vbm (bool): Whether to shift energies so VBM is at 0.
+        xmin, xmax, ymin, ymax: Plot limits.
+        k_labels (str): Comma-separated list of k-point labels.
+
+    Returns:
+        ax: The modified matplotlib axis.
+    """
     vbm_to_shift = bands_obj.VBM() if shift_vbm else 0
-
     special_points_num = []
 
     if bands_obj.ISPIN == 1:
         data, cols = bands_obj.bands()
         df = pd.DataFrame(data=data, columns=cols)
 
-        kold = 0
-        for k_idx, kp in enumerate(df["KPOINT"]):
-            if k_idx > 0 and df["KPOINT"][k_idx] < df["KPOINT"][k_idx-1]: # Check for segment break
-                special_points_num.append(df["KPOINT"][k_idx-1])
-                ax.plot(df["KPOINT"][kold:k_idx], df["Energy"][kold:k_idx]-vbm_to_shift, color="black", linestyle="-")
-                kold = k_idx
-        # Plot the last segment
-        ax.plot(df["KPOINT"][kold:], df["Energy"][kold:]-vbm_to_shift, color="black", linestyle="-")
-        # Add the last k-point if it's not already there and the DataFrame is not empty
-        if not df.empty and df["KPOINT"].iloc[-1] not in special_points_num:
-            special_points_num.append(df["KPOINT"].iloc[-1])
+        special_points_num = plot_segments(
+            df=df,
+            color="black",
+            linestyle="-",
+            label=None,
+            special_points_num=special_points_num,
+            vbm_to_shift=vbm_to_shift,
+            ax=ax
+        )
 
     elif bands_obj.ISPIN == 2:
         bands_data, cols = bands_obj.bands()
         df_up = pd.DataFrame(data=bands_data[0], columns=["KPOINT", "Energy"])
         df_down = pd.DataFrame(data=bands_data[1], columns=["KPOINT", "Energy"])
 
-        # Flags to ensure labels appear only once in the legend
-        first_spin_up_plot = True
-        first_spin_down_plot = True
+        special_points_num = plot_segments(
+            df=df_up,
+            color="blue",
+            linestyle="-",
+            label="Spin Up",
+            special_points_num=special_points_num,
+            vbm_to_shift=vbm_to_shift,
+            ax=ax
+        )
 
-        # Plot spin-up bands
-        kold_up = 0
-        for k_idx, kp in enumerate(df_up["KPOINT"]):
-            if k_idx > 0 and df_up["KPOINT"][k_idx] < df_up["KPOINT"][k_idx-1]: # Check for segment break
-                special_points_num.append(df_up["KPOINT"][k_idx-1])
-                ax.plot(df_up["KPOINT"][kold_up:k_idx], df_up["Energy"][kold_up:k_idx]-vbm_to_shift, 
-                        color="blue", linestyle="-", label="Spin Up" if first_spin_up_plot else None)
-                first_spin_up_plot = False
-                kold_up = k_idx
-        if not df_up.empty:
-            ax.plot(df_up["KPOINT"][kold_up:], df_up["Energy"][kold_up:]-vbm_to_shift, 
-                    color="blue", linestyle="-", label="Spin Up" if first_spin_up_plot else None)
-            first_spin_up_plot = False
+        special_points_num = plot_segments(
+            df=df_down,
+            color="red",
+            linestyle="--",
+            label="Spin Down",
+            special_points_num=special_points_num,
+            vbm_to_shift=vbm_to_shift,
+            ax=ax
+        )
 
+    # Sort and remove duplicates
+    special_points_num = sorted(set(special_points_num))
 
-        # Plot spin-down bands
-        kold_down = 0
-        for k_idx, kp in enumerate(df_down["KPOINT"]):
-            if k_idx > 0 and df_down["KPOINT"][k_idx] < df_down["KPOINT"][k_idx-1]: # Check for segment break
-                if df_down["KPOINT"][k_idx-1] not in special_points_num: # Avoid duplicate special points
-                    special_points_num.append(df_down["KPOINT"][k_idx-1])
-                ax.plot(df_down["KPOINT"][kold_down:k_idx], df_down["Energy"][kold_down:k_idx]-vbm_to_shift, 
-                        color="red", linestyle="--", label="Spin Down" if first_spin_down_plot else None)
-                first_spin_down_plot = False
-                kold_down = k_idx
-        if not df_down.empty:
-            ax.plot(df_down["KPOINT"][kold_down:], df_down["Energy"][kold_down:]-vbm_to_shift, 
-                    color="red", linestyle="--", label="Spin Down" if first_spin_down_plot else None)
-            first_spin_down_plot = False
+    print(special_points_num)
 
-        # Add the last k-point if it's not already there and the DataFrame is not empty
-        if not df_up.empty and df_up["KPOINT"].iloc[-1] not in special_points_num:
-            special_points_num.append(df_up["KPOINT"].iloc[-1])
-        
-        # Sort and unique special points
-        special_points_num = sorted(list(set(special_points_num)))
-
-    # set lines on special points
+    # Draw vertical lines at special k-points
     for sp in special_points_num:
         ax.axvline(x=sp, color="black", linewidth=1.0, linestyle="dashed")
 
-    # Line on fermi level
-    ax.axhline(y=0, color="black", linewidth=1.0, linestyle="dotted", label=r"VBM")
+    # Horizontal line at VBM or Fermi level
+    ax.axhline(y=0, color="black", linewidth=1.0, linestyle="dotted", label="VBM")
 
-    # set xticks
+    # Set x-ticks and labels
     if k_labels is None:
         ax.set_xticks(ticks=special_points_num)
         ax.set_xticklabels([])
@@ -1003,11 +1032,12 @@ def plot_band_axis(ax, bands_obj, shift_vbm = True, xmin = 0, xmax = 1, ymin = -
             print("Wrong number of k-labels... Using ticks with no labels.")
             ax.set_xticks(ticks=special_points_num)
             ax.set_xticklabels([])
-            
-    # axis limits
+
+    # Set axis limits and show legend
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-    ax.legend() # Add a legend to differentiate spin up/down
+    ax.set_ylabel("Energy (eV)")
+    ax.legend()
 
     return ax
 
